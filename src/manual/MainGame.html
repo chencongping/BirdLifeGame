@@ -22,6 +22,7 @@
 </head>
 <body>
 <canvas id="chessboard" width="600" height="600"></canvas>
+<button id="switch">切换棋子颜色</button>
 <script>
 var canvas = document.getElementById('chessboard');
 var ctx = canvas.getContext('2d');
@@ -45,11 +46,14 @@ canvas.onclick = function(e) {
     ctx.beginPath();
     ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
     ctx.closePath();
-    ctx.fillStyle = isBlack ? 'black' : 'white';
+    ctx.fillStyle = isBlack ? 'black' : 'red';
     ctx.fill();
+};
 
+document.getElementById('switch').onclick = function() {
     isBlack = !isBlack; // 切换棋子颜色
 };
+
 </script>
 </body>
 </html>
