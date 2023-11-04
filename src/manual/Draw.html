@@ -2,13 +2,13 @@
 <html>
 <body>
 
-<canvas id="signatureCanvas" style="border:1px solid #d3d3d3;">
+<canvas id="signatureCanvas" width="600" height="600" style="border:1px solid #d3d3d3;">
 Your browser does not support the HTML5 canvas tag.
 </canvas>
 
 <script>
-var canvas = document.getElementById("signatureCanvas");
-var ctx = canvas.getContext("2d");
+var canvas = document.getElementById('signatureCanvas');
+var ctx = canvas.getContext('2d');
 ctx.lineWidth = 2;
 
 var drawing = false;
@@ -25,10 +25,13 @@ function endDrawing() {
 
 function draw(e) {
     if(!drawing) return;
-    ctx.lineTo(e.clientX, e.clientY);
+    var rect = canvas.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    ctx.lineTo(x, y);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(e.clientX, e.clientY);
+    ctx.moveTo(x, y);
 }
 
 canvas.addEventListener("mousedown", startDrawing);

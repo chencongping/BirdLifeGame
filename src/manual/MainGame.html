@@ -3,9 +3,6 @@
 <head>
 <style>
 #chessboard {
-  width: 240px;
-  height: 240px;
-  margin: 20px;
   border: 1px solid #333;
 }
 #chessboard div {
@@ -21,10 +18,10 @@
 </style>
 </head>
 <body>
+<canvas id="chessboard" width="600" height="600" ></canvas>
+<button id="switch">切换棋子颜色</button>
 <p id="coordinates"></p>
 <p id="canvasIndex"></p>
-<canvas id="chessboard" width="600" height="600"></canvas>
-<button id="switch">切换棋子颜色</button>
 X : <input id = "xIndex"></input> Y <input id = "yIndex"></input>
 
 <p id="position"></p>
@@ -48,16 +45,18 @@ for (var i = 0; i < 15; i++) {
 }
 
 canvas.onclick = function(e) {
-    var x = Math.floor(e.offsetX / size);
-    var y = Math.floor(e.offsetY / size);
-    var centerX = x * size + size / 2;
-    var centerY = y * size + size / 2;
+	var rect = canvas.getBoundingClientRect();
+    var x = e.clientX - rect.left + window.scrollX;
+    var y = e.clientY - rect.top + window.scrollY;
+	
+	var centerX = Math.ceil((x- rect.left)/size) * size - size / 2;
+    var centerY = Math.ceil((y- rect.top)/size) * size - size / 2;
 	xIndex.value = e.offsetX
 	yIndex.value = e.offsetY
     // 检查是否点击了已存在的棋子
     for (var i = 0; i < pieces.length; i++) {
         var piece = pieces[i];
-        if (piece.x === x && piece.y === y) {
+        if (piece.centerX === centerX && piece.centerY === centerY) {
             // 如果点击了已存在的棋子，移除这个棋子并重新绘制棋盘
             pieces.splice(i, 1);
             redrawBoard();
@@ -66,19 +65,22 @@ canvas.onclick = function(e) {
     }
 
     // 添加新的棋子
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.fillStyle = isBlack ? 'black' : 'red';
-    ctx.fill();
-
-    pieces.push({x: x, y: y, color: isBlack ? 'black' : 'red'});
+	drawPoint(centerX,centerY)
+    pieces.push({centerX: centerX, centerY: centerY, color: isBlack ? 'black' : 'red'});
 
     isBlack = !isBlack; // 切换棋子颜色
 
     // 显示点击位置和棋子位置
-    document.getElementById('position').textContent = '点击位置：(' + e.offsetX + ', ' + e.offsetY + ')，棋子位置：(' + centerX + ', ' + centerY + ')';
+    document.getElementById('position').textContent = '点击位置：(' + e.offsetX + ', ' + e.offsetY + ')，centerX：(' + centerX + ', centerX:' + centerY + ')';
 };
+
+function drawPoint(centerX, centerY){
+	ctx.beginPath();
+    ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fillStyle = isBlack ? 'black' : 'red';
+    ctx.fill();
+}
 
 document.getElementById('switch').onclick = function() {
     isBlack = !isBlack; // 切换棋子颜色
@@ -98,17 +100,43 @@ function redrawBoard() {
     // 重新画棋子
     for (var i = 0; i < pieces.length; i++) {
         var piece = pieces[i];
-        var centerX = piece.x * size + size / 2;
-        var centerY = piece.y * size + size / 2;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
+        ctx.arc(piece.centerX, piece.centerY, pieceRadius, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fillStyle = piece.color;
         ctx.fill();
     }
 }
 
+///drawPoint
+ctx.lineWidth = 2;
 
+var drawing = false;
+
+function startDrawing(e) {
+    drawing = true;
+    draw(e);
+}
+
+function endDrawing() {
+    drawing = false;
+    ctx.beginPath();
+}
+
+function draw(e) {
+    if(!drawing) return;
+    var rect = canvas.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+}
+
+//canvas.addEventListener("mousedown", startDrawing);
+//canvas.addEventListener("mouseup", endDrawing);
+//canvas.addEventListener("mousemove", draw);
 
 </script>
 </body>
