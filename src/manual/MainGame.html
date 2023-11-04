@@ -29,6 +29,13 @@ var ctx = canvas.getContext('2d');
 var size = 40; // 棋盘格子的大小
 var pieceRadius = size / 2 - 2; // 棋子的半径
 var isBlack = true; // 是否轮到黑棋
+var pieceRanges = []
+
+function Piece(centerX, centerY, color) {
+    this.centerX = centerX;
+    this.centerY = centerY;
+    this.color = color;
+}
 
 // 画棋盘
 for (var i = 0; i < 15; i++) {
@@ -38,16 +45,19 @@ for (var i = 0; i < 15; i++) {
 }
 
 canvas.onclick = function(e) {
+	console.log("鼠标的位置：" + e.offsetX + ":" + e.offsetY)
     var x = Math.floor(e.offsetX / size);
     var y = Math.floor(e.offsetY / size);
     var centerX = x * size + size / 2;
     var centerY = y * size + size / 2;
-
+	console.log("棋盘的位置：" + centerX + ":" + centerY)
+	var color = isBlack ? 'black' : 'red';
     ctx.beginPath();
     ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
     ctx.closePath();
-    ctx.fillStyle = isBlack ? 'black' : 'red';
+    ctx.fillStyle = color;
     ctx.fill();
+	pieceRanges.push(new Piece(centerX,centerY,color))
 };
 
 document.getElementById('switch').onclick = function() {
