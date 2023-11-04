@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="signatureCanvas" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<script>
+var canvas = document.getElementById("signatureCanvas");
+var ctx = canvas.getContext("2d");
+ctx.lineWidth = 2;
+
+var drawing = false;
+
+function startDrawing(e) {
+    drawing = true;
+    draw(e);
+}
+
+function endDrawing() {
+    drawing = false;
+    ctx.beginPath();
+}
+
+function draw(e) {
+    if(!drawing) return;
+    ctx.lineTo(e.clientX, e.clientY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX, e.clientY);
+}
+
+canvas.addEventListener("mousedown", startDrawing);
+canvas.addEventListener("mouseup", endDrawing);
+canvas.addEventListener("mousemove", draw);
+
+</script>
+
+</body>
+</html>

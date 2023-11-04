@@ -21,21 +21,24 @@
 </style>
 </head>
 <body>
+<p id="coordinates"></p>
+<p id="canvasIndex"></p>
 <canvas id="chessboard" width="600" height="600"></canvas>
 <button id="switch">切换棋子颜色</button>
+X : <input id = "xIndex"></input> Y <input id = "yIndex"></input>
+
+<p id="position"></p>
+<script src="js/common.js"></script>
 <script>
 var canvas = document.getElementById('chessboard');
+var xIndex = document.getElementById('xIndex');
+var yIndex = document.getElementById('yIndex');
+
 var ctx = canvas.getContext('2d');
 var size = 40; // 棋盘格子的大小
 var pieceRadius = size / 2 - 2; // 棋子的半径
 var isBlack = true; // 是否轮到黑棋
-var pieceRanges = []
-
-function Piece(centerX, centerY, color) {
-    this.centerX = centerX;
-    this.centerY = centerY;
-    this.color = color;
-}
+var pieces = []; // 存储棋子的数组
 
 // 画棋盘
 for (var i = 0; i < 15; i++) {
@@ -45,24 +48,67 @@ for (var i = 0; i < 15; i++) {
 }
 
 canvas.onclick = function(e) {
-	console.log("鼠标的位置：" + e.offsetX + ":" + e.offsetY)
     var x = Math.floor(e.offsetX / size);
     var y = Math.floor(e.offsetY / size);
     var centerX = x * size + size / 2;
     var centerY = y * size + size / 2;
-	console.log("棋盘的位置：" + centerX + ":" + centerY)
-	var color = isBlack ? 'black' : 'red';
+	xIndex.value = e.offsetX
+	yIndex.value = e.offsetY
+    // 检查是否点击了已存在的棋子
+    for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+        if (piece.x === x && piece.y === y) {
+            // 如果点击了已存在的棋子，移除这个棋子并重新绘制棋盘
+            pieces.splice(i, 1);
+            redrawBoard();
+            return;
+        }
+    }
+
+    // 添加新的棋子
     ctx.beginPath();
     ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
     ctx.closePath();
-    ctx.fillStyle = color;
+    ctx.fillStyle = isBlack ? 'black' : 'red';
     ctx.fill();
-	pieceRanges.push(new Piece(centerX,centerY,color))
+
+    pieces.push({x: x, y: y, color: isBlack ? 'black' : 'red'});
+
+    isBlack = !isBlack; // 切换棋子颜色
+
+    // 显示点击位置和棋子位置
+    document.getElementById('position').textContent = '点击位置：(' + e.offsetX + ', ' + e.offsetY + ')，棋子位置：(' + centerX + ', ' + centerY + ')';
 };
 
 document.getElementById('switch').onclick = function() {
     isBlack = !isBlack; // 切换棋子颜色
 };
+
+function redrawBoard() {
+    // 清除画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 重新画棋盘
+    for (var i = 0; i < 15; i++) {
+        for (var j = 0; j < 15; j++) {
+            ctx.strokeRect(i * size, j * size, size, size);
+        }
+    }
+
+    // 重新画棋子
+    for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+        var centerX = piece.x * size + size / 2;
+        var centerY = piece.y * size + size / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fillStyle = piece.color;
+        ctx.fill();
+    }
+}
+
+
 
 </script>
 </body>
