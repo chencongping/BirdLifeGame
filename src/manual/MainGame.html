@@ -4,6 +4,7 @@
 <style>
 #chessboard {
   border: 1px solid #333;
+  background-color: #fff;
 }
 #chessboard div {
   width: 30px;
@@ -18,124 +19,139 @@
 </style>
 </head>
 <body>
+<p>棋盘大小设置：<input type="text" id="pieceSizeWidth" value="15"> * <input type="text" id="pieceSizeHeight" value="15"><button id="resetSize">确定</button></p>
+<p>背景颜色：<input type="color" id="canvasBackgroundColor" value="#ffffff">棋子颜色：<input type="color" id="pieceColor" value="#000000"></p>
+<p>随机生成的数量：<input type="text" id="randomSize" value="20"><button id="generate">生成</button></p>
 <canvas id="chessboard" width="600" height="600" ></canvas>
-<button id="switch">切换棋子颜色</button>
-<p id="coordinates"></p>
-<p id="canvasIndex"></p>
-X : <input id = "xIndex"></input> Y <input id = "yIndex"></input>
-
-<p id="position"></p>
-<script src="js/common.js"></script>
 <script>
 var canvas = document.getElementById('chessboard');
-var xIndex = document.getElementById('xIndex');
-var yIndex = document.getElementById('yIndex');
+var canvasBackgroundColorInput = document.querySelector('#canvasBackgroundColor');
+var pieceColorInput = document.querySelector('#pieceColor');
+var randomSizeInput = document.querySelector('#randomSize');
+var pieceSizeWidthInput = document.querySelector('#pieceSizeWidth');
+var pieceSizeHeightInput = document.querySelector('#pieceSizeHeight');
+var resetSizeButton = document.querySelector('#resetSize');
 
 var ctx = canvas.getContext('2d');
 var size = 40; // 棋盘格子的大小
 var pieceRadius = size / 2 - 2; // 棋子的半径
 var isBlack = true; // 是否轮到黑棋
 var pieces = []; // 存储棋子的数组
+var pieceColor = 'black'
 
-// 画棋盘
-for (var i = 0; i < 15; i++) {
-    for (var j = 0; j < 15; j++) {
-        ctx.strokeRect(i * size, j * size, size, size);
-    }
+var piecesWidth = 20
+var piecesHeight = 20
+
+addEvent();
+drawPiecesPanel();
+
+function getCenterXByEvent(e){
+	var x = e.offsetX;
+	var centerX = Math.ceil(x/size) * size - size / 2;
+	return centerX;
+}
+
+function getCenterYByEvent(e){
+	var y = e.offsetY;
+	var centerY = Math.ceil(y/size) * size - size / 2;
+	return centerY;
 }
 
 canvas.onclick = function(e) {
-	var rect = canvas.getBoundingClientRect();
-    var x = e.clientX - rect.left - window.scrollX + 10;
-    var y = e.clientY - rect.top - window.scrollY + 10;
-	var centerX = Math.ceil((x- rect.left)/size) * size - size / 2;
-    var centerY = Math.ceil((y- rect.top)/size) * size - size / 2;
-	xIndex.value = e.offsetX
-	yIndex.value = e.offsetY
-    // 检查是否点击了已存在的棋子
-    for (var i = 0; i < pieces.length; i++) {
+	var centerX = getCenterXByEvent(e);
+    var centerY = getCenterYByEvent(e);
+
+	for (var i = 0; i < pieces.length; i++) {
         var piece = pieces[i];
         if (piece.centerX === centerX && piece.centerY === centerY) {
-            // 如果点击了已存在的棋子，移除这个棋子并重新绘制棋盘
             pieces.splice(i, 1);
             redrawBoard();
             return;
         }
     }
-
-    // 添加新的棋子
-	drawPoint(centerX,centerY)
-    pieces.push({centerX: centerX, centerY: centerY, color: isBlack ? 'black' : 'red'});
-
-    isBlack = !isBlack; // 切换棋子颜色
-
-    // 显示点击位置和棋子位置
-    document.getElementById('position').textContent = '点击位置：(' + e.offsetX + ', ' + e.offsetY + ')，centerX：(' + centerX + ', centerX:' + centerY + ')';
+	var pieceObj = new PieceObj(centerX, centerY, pieceColor)
+	drawPoint(pieceObj)
+	pieces.push(pieceObj);
 };
 
-function drawPoint(centerX, centerY){
+function removePiece(centerX,centerY){
+	if (getPiece(centerX,centerY)) {
+		pieces.splice(i, 1);
+	}
+}
+
+function getPiece(centerX,centerY){
+	for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+        if (piece.centerX === centerX && piece.centerY === centerY) {
+            return piece;
+        }
+    }
+}
+
+function PieceObj(centerX, centerY, color){
+	this.centerX = centerX;
+	this.centerY = centerY;
+	this.color = color;
+}
+
+
+function drawPoint(pieceObj){
 	ctx.beginPath();
-    ctx.arc(centerX, centerY, pieceRadius, 0, Math.PI * 2);
+    ctx.arc(pieceObj.centerX, pieceObj.centerY, pieceRadius, 0, Math.PI * 2);
     ctx.closePath();
-    ctx.fillStyle = isBlack ? 'black' : 'red';
+	ctx.fillStyle = pieceObj.color;
     ctx.fill();
 }
 
-document.getElementById('switch').onclick = function() {
-    isBlack = !isBlack; // 切换棋子颜色
-};
+function addEvent(){
+
+	canvasBackgroundColorInput.addEventListener('change', function(event) {
+	  colorValue = event.target.value;
+	  canvas.style.backgroundColor = colorValue;
+	});
+
+	pieceColorInput.addEventListener('change', function(event) {
+	  colorValue = event.target.value; 
+	  pieceColor = colorValue;
+	});
+
+	resetSizeButton.onclick = function() {
+		canvas.style.width = pieceSizeWidthInput.value * size
+		canvas.style.height = pieceSizeHeightInput.value * size
+		cleanCanvas();
+		drawPiecesPanel();
+	};
+}
+
+function cleanCanvas(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawPiecesPanel(){
+	for (var i = 0; i < pieceSizeWidthInput.value; i++) {
+		for (var j = 0; j < pieceSizeHeightInput.value; j++) {
+			ctx.strokeRect(i * size, j * size, size, size);
+		}
+	}
+}
 
 function redrawBoard() {
-    // 清除画布
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 重新画棋盘
-    for (var i = 0; i < 15; i++) {
-        for (var j = 0; j < 15; j++) {
-            ctx.strokeRect(i * size, j * size, size, size);
-        }
-    }
-
-    // 重新画棋子
+    cleanCanvas();
+	drawPiecesPanel();
     for (var i = 0; i < pieces.length; i++) {
         var piece = pieces[i];
-        ctx.beginPath();
-        ctx.arc(piece.centerX, piece.centerY, pieceRadius, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.fillStyle = piece.color;
-        ctx.fill();
+		drawPoint(piece)
     }
 }
 
-///drawPoint
-ctx.lineWidth = 2;
-
-var drawing = false;
-
-function startDrawing(e) {
-    drawing = true;
-    draw(e);
+function generatePieces(){
+	var piecesNumber = randomSizeInput.value;
+	for(var i = 0; i < piecesNumber; i++ ) {
+		let randomNum = Math.floor(Math.random() * 101);
+		console.log(i)
+	}
 }
-
-function endDrawing() {
-    drawing = false;
-    ctx.beginPath();
-}
-
-function draw(e) {
-    if(!drawing) return;
-    var rect = canvas.getBoundingClientRect();
-    var x = e.clientX - rect.left;
-    var y = e.clientY - rect.top;
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-}
-
-//canvas.addEventListener("mousedown", startDrawing);
-//canvas.addEventListener("mouseup", endDrawing);
-//canvas.addEventListener("mousemove", draw);
 
 </script>
 </body>
