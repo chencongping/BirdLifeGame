@@ -46,9 +46,8 @@ for (var i = 0; i < 15; i++) {
 
 canvas.onclick = function(e) {
 	var rect = canvas.getBoundingClientRect();
-    var x = e.clientX - rect.left + window.scrollX;
-    var y = e.clientY - rect.top + window.scrollY;
-	
+    var x = e.clientX - rect.left - window.scrollX + 10;
+    var y = e.clientY - rect.top - window.scrollY + 10;
 	var centerX = Math.ceil((x- rect.left)/size) * size - size / 2;
     var centerY = Math.ceil((y- rect.top)/size) * size - size / 2;
 	xIndex.value = e.offsetX
