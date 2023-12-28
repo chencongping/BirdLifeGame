@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#chessboard {
+  border: 1px solid #333;
+  background-color: #fff;
+}
+#chessboard div {
+  width: 30px;
+  height: 30px;
+}
+#chessboard .white {
+  background: #fff;
+}
+#chessboard .black {
+  background: #000;
+}
+</style>
+</head>
+<body>
+<p>棋盘大小设置：<input type="text" id="pieceSizeWidth" value="15"> * <input type="text" id="pieceSizeHeight" value="15"><button id="resetSize">确定</button></p>
+<p>背景颜色：<input type="color" id="canvasBackgroundColor" value="#ffffff">棋子颜色：<input type="color" id="pieceColor" value="#000000"></p>
+<p>随机生成的数量：<input type="text" id="randomSize" value="20"><button id="generate">生成</button></p>
+<canvas id="chessboard" width="600" height="600" ></canvas>
+<script>
+var canvas = document.getElementById('chessboard');
+var canvasBackgroundColorInput = document.querySelector('#canvasBackgroundColor');
+var pieceColorInput = document.querySelector('#pieceColor');
+var randomSizeInput = document.querySelector('#randomSize');
+var pieceSizeWidthInput = document.querySelector('#pieceSizeWidth');
+var pieceSizeHeightInput = document.querySelector('#pieceSizeHeight');
+var resetSizeButton = document.querySelector('#resetSize');
+
+var ctx = canvas.getContext('2d');
+var size = 40; // 棋盘格子的大小
+var pieceRadius = size / 2 - 2; // 棋子的半径
+var isBlack = true; // 是否轮到黑棋
+var pieces = []; // 存储棋子的数组
+var pieceColor = 'black'
+
+var piecesWidth = 20
+var piecesHeight = 20
+
+addEvent();
+drawPiecesPanel();
+
+function getCenterXByEvent(e){
+	var x = e.offsetX;
+	var centerX = Math.ceil(x/size) * size - size / 2;
+	return centerX;
+}
+
+function getCenterYByEvent(e){
+	var y = e.offsetY;
+	var centerY = Math.ceil(y/size) * size - size / 2;
+	return centerY;
+}
+
+canvas.onclick = function(e) {
+	var centerX = getCenterXByEvent(e);
+    var centerY = getCenterYByEvent(e);
+
+	for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+        if (piece.centerX === centerX && piece.centerY === centerY) {
+            pieces.splice(i, 1);
+            redrawBoard();
+            return;
+        }
+    }
+	var pieceObj = new PieceObj(centerX, centerY, pieceColor)
+	drawPoint(pieceObj)
+	pieces.push(pieceObj);
+};
+
+function removePiece(centerX,centerY){
+	if (getPiece(centerX,centerY)) {
+		pieces.splice(i, 1);
+	}
+}
+
+function getPiece(centerX,centerY){
+	for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+        if (piece.centerX === centerX && piece.centerY === centerY) {
+            return piece;
+        }
+    }
+}
+
+function PieceObj(centerX, centerY, color){
+	this.centerX = centerX;
+	this.centerY = centerY;
+	this.color = color;
+}
+
+
+function drawPoint(pieceObj){
+	ctx.beginPath();
+    ctx.arc(pieceObj.centerX, pieceObj.centerY, pieceRadius, 0, Math.PI * 2);
+    ctx.closePath();
+	ctx.fillStyle = pieceObj.color;
+    ctx.fill();
+}
+
+function addEvent(){
+
+	canvasBackgroundColorInput.addEventListener('change', function(event) {
+	  colorValue = event.target.value;
+	  canvas.style.backgroundColor = colorValue;
+	});
+
+	pieceColorInput.addEventListener('change', function(event) {
+	  colorValue = event.target.value; 
+	  pieceColor = colorValue;
+	});
+
+	resetSizeButton.onclick = function() {
+		canvas.style.width = pieceSizeWidthInput.value * size
+		canvas.style.height = pieceSizeHeightInput.value * size
+		cleanCanvas();
+		drawPiecesPanel();
+	};
+}
+
+function cleanCanvas(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawPiecesPanel(){
+	for (var i = 0; i < pieceSizeWidthInput.value; i++) {
+		for (var j = 0; j < pieceSizeHeightInput.value; j++) {
+			ctx.strokeRect(i * size, j * size, size, size);
+		}
+	}
+}
+
+function redrawBoard() {
+    cleanCanvas();
+	drawPiecesPanel();
+    for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+		drawPoint(piece)
+    }
+}
+
+function generatePieces(){
+	var piecesNumber = randomSizeInput.value;
+	for(var i = 0; i < piecesNumber; i++ ) {
+		let randomNum = Math.floor(Math.random() * 101);
+		console.log(i)
+	}
+}
+
+</script>
+</body>
+</html>

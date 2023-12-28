@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <canvas id="game" width="500" height="500"></canvas>
+    <div id="stats"></div>
+    <p>调整食物生成速度:<input id="foodPerDay" type="number" min="0" value="10"></p>
+	<p>调整繁殖所需食物:<input id="newCreatureFoodNumber" type="number" min="0" value="20"></p>
+	<button id="pauseButton">暂停</button>
+    <div id="creatureStats"></div>
+    
+    <script>
+        var canvas = document.getElementById('game');
+        var context = canvas.getContext('2d');
+        var stats = document.getElementById('stats');
+        var creatureStats = document.getElementById('creatureStats');
+        var foodPerDayInput = document.getElementById('foodPerDay');
+		var newCreatureFoodNumberInput = document.getElementById('newCreatureFoodNumber');
+        var pauseButton = document.getElementById('pauseButton');
+
+        var gridSize = 5;
+        var gridWidth = canvas.width / gridSize;
+        var gridHeight = canvas.height / gridSize;
+		var speed = 1000;
+
+        var creatures = [];
+        var food = [];
+
+
+        // 初始化生命体和食物
+        for (var i = 0; i < gridWidth; i++) {
+            creatures[i] = [];
+            food[i] = [];
+            for (var j = 0; j < gridHeight; j++) {
+                creatures[i][j] = Math.random() < 0.01 ? {food: 0, days: 0} : null;
+                food[i][j] = Math.random() < 0.2 ? {} : null;
+            }
+        }
+
+        var days = 0;
+        var paused = false;
+
+        // 每秒更新一次游戏状态
+        var intervalId = setInterval(updateGame, speed);
+
+        function updateGame() {
+            if (paused) {
+                return;
+            }
+			// adjust paramters start 
+			var foodPerDay = parseInt(foodPerDayInput.value);
+			var newCreatureFoodNumber = parseInt(newCreatureFoodNumberInput.value);
+			// adjust paramters end 
+            days++;
+            var creatureCount = 0;
+            var foodCount = 0;
+
+            // 更新生命体状态
+            for (var i = 0; i < gridWidth; i++) {
+                for (var j = 0; j < gridHeight; j++) {
+                    if (creatures[i][j]) {
+                        creatureCount++;
+                        creatures[i][j].days++;
+                        if (creatures[i][j].days > 20) {
+                            if (creatures[i][j].food >= newCreatureFoodNumber) {
+                                creatures[i][j].food = 0;
+                                creatures[i][j].days = 0;
+                                // 繁殖
+                                if (i > 0 && !creatures[i - 1][j]) {
+                                    creatures[i - 1][j] = {food: 0, days: 0};
+                                } else if (i < gridWidth - 1 && !creatures[i + 1][j]) {
+                                    creatures[i + 1][j] = {food: 0, days: 0};
+                                }
+                            } else {
+                                // 死亡
+                                creatures[i][j] = null;
+                            }
+                        } else {
+                            // 寻找并吃掉周围的食物
+                            outer: for (var di = 0; di < gridWidth; di++) {
+                                for (var dj = 0; dj < gridHeight; dj++) {
+                                    if (food[di][dj]) {
+                                        creatures[i][j].food++;
+                                        food[di][dj] = null;
+                                        break outer;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (food[i][j]) {
+                        foodCount++;
+                    }
+                }
+            }
+
+            // 根据输入框的值生成新的食物
+            
+            for (var i = 0; i < foodPerDay; i++) {
+                var x = Math.floor(Math.random() * gridWidth);
+                var y = Math.floor(Math.random() * gridHeight);
+                if (!food[x][y]) {
+                    food[x][y] = {};
+                }
+            }
+
+            // 渲染游戏状态
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            for (var i = 0; i < gridWidth; i++) {
+                for (var j = 0; j < gridHeight; j++) {
+                    if (creatures[i][j]) {
+                        context.fillStyle = 'black';
+                        context.fillRect(i * gridSize, j * gridSize, gridSize*2, gridSize*2);
+                    } else if (food[i][j]) {
+                        context.fillStyle = 'green';
+                        context.fillRect(i * gridSize, j * gridSize, gridSize, gridSize);
+                    }
+                }
+            }
+
+            // 更新统计面板
+            stats.innerHTML =
+                '进化天数: ' + days + '<br>' +
+                '小鸡数量: ' + creatureCount + '<br>' +
+                '食物剩余数量: ' + foodCount;
+
+            // 更新生命体统计面板
+            var creatureStatsHtml = '';
+            for (var i = 0; i < gridWidth; i++) {
+                for (var j = 0; j < gridHeight; j++) {
+                    if (creatures[i][j]) {
+                        creatureStatsHtml += '小鸡 (' + i + ', ' + j + '): 吃掉的食物数量 = ' + creatures[i][j].food + '<br>';
+                    }
+                }
+            }
+            creatureStats.innerHTML = creatureStatsHtml;
+        }
+
+        pauseButton.addEventListener('click', function() {
+            paused = !paused;
+            pauseButton.textContent = paused ? '开始' : '暂停';
+        });
+		
+		function getRandomArbitrary(min, max) {
+		  return Math.random() * (max - min) + min;
+		}
+    </script>
+</body>
+</html>
